@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پنل مدیریت حساب‌های بانکی</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg:#f0f4f8; --card:#fff; --text:#1a202c; --muted:#718096;
+  --border:#e2e8f0; --primary:#3b5bdb; --primary-l:#eef2ff;
+  --success:#0d9488; --success-l:#f0fdf9;
+  --danger:#e53e3e; --danger-l:#fff5f5;
+  --warning:#d97706; --warning-l:#fffbeb;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
+  --r:12px;
+  --header-grad:linear-gradient(135deg,#1e3a8a,#2563eb);
+}
+.dark {
+  --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8;
+  --border:#334155; --primary-l:#1e3a8a; --success-l:#134e4a;
+  --danger-l:#450a0a; --warning-l:#451a03;
+  --shadow:0 1px 4px rgba(0,0,0,.3);
+  --header-grad:linear-gradient(135deg,#0f172a,#1e3a8a);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Vazirmatn',Tahoma,sans-serif;background:var(--bg);color:var(--text);padding:20px 16px;min-height:100vh;transition:background .3s,color .3s;}
+.container{max-width:1140px;margin:0 auto;}
+
+/* ===== HEADER ===== */
+header{background:var(--header-grad);border-radius:16px;padding:24px 28px;margin-bottom:24px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  box-shadow:0 8px 24px rgba(37,99,235,.25);}
+.hd-title h1{color:#fff;font-size:19px;font-weight:800;}
+.hd-title p{color:rgba(255,255,255,.6);font-size:12px;margin-top:3px;}
+.hd-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.total-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:12px;padding:12px 20px;text-align:center;}
+.total-pill span{font-size:11px;color:rgba(255,255,255,.65);display:block;margin-bottom:4px;}
+.total-pill strong{font-size:22px;color:#6ee7b7;font-weight:700;}
+.dark-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:10px;padding:9px 14px;cursor:pointer;font-size:18px;
+  transition:.2s;font-family:inherit;}
+.dark-btn:hover{background:rgba(255,255,255,.22);}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:4px;background:var(--card);border-radius:12px;padding:5px;
+  border:1px solid var(--border);margin-bottom:22px;box-shadow:var(--shadow);}
+.tab{flex:1;padding:10px;border:none;border-radius:9px;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:600;transition:.2s;
+  background:transparent;color:var(--muted);}
+.tab.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(59,91,219,.35);}
+.tab:not(.active):hover{background:var(--primary-l);color:var(--primary);}
+.tab-content{display:none;} .tab-content.active{display:block;}
+
+/* ===== CARD ===== */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  padding:22px;box-shadow:var(--shadow);}
+.card-title{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.ci{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.ci-blue{background:var(--primary-l);} .ci-green{background:var(--success-l);}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+@media(max-width:680px){.grid2{grid-template-columns:1fr;}}
+
+/* ===== FORM ===== */
+.vf{display:flex;flex-direction:column;gap:10px;}
+.vf input,.vf select{width:100%;padding:10px 13px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:inherit;font-size:14px;color:var(--text);
+  background:var(--card);transition:.2s;}
+.vf input:focus,.vf select:focus{outline:none;border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(59,91,219,.12);}
+
+/* amount field */
+.amt-wrap{position:relative;}
+.amt-badge{display:block;min-height:17px;font-size:12px;color:var(--primary);
+  font-weight:600;margin-top:3px;padding-right:2px;}
+
+/* category select row */
+.cat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* ===== BUTTONS ===== */
+.btn{padding:10px 16px;border:none;border-radius:8px;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:700;transition:.2s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn:hover{transform:translateY(-1px);}
+.btn-p{background:var(--primary);color:#fff;}
+.btn-p:hover{background:#2f4ac7;box-shadow:0 4px 12px rgba(59,91,219,.3);}
+.btn-g{background:var(--success);color:#fff;}
+.btn-g:hover{background:#0f766e;}
+.btn-o{background:var(--card);border:1.5px solid var(--border);color:var(--muted);}
+.btn-o:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-l);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-warn{background:var(--warning);color:#fff;}
+.btn-warn:hover{background:#b45309;}
+
+/* ===== BANK CARDS ===== */
+.banks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:22px;}
+.bcard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  padding:18px 18px 14px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:.2s;}
+.bcard:hover{box-shadow:var(--shadow-md);}
+.bcard::before{content:'';position:absolute;top:0;right:0;width:5px;height:100%;
+  background:var(--primary);border-radius:0 var(--r) var(--r) 0;}
+.bcard-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.bname{font-weight:700;font-size:15px;} .bacc{font-size:11px;color:var(--muted);margin-top:2px;}
+.bbal-box{background:var(--bg);border-radius:8px;padding:11px;text-align:center;border:1px solid var(--border);}
+.bbal-lbl{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.bbal-amt{font-size:19px;font-weight:700;}
+.bcard-actions{display:flex;gap:6px;margin-top:11px;}
+
+/* ===== SECTION HDR ===== */
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.sec-lbl{font-size:15px;font-weight:700;}
+.sec-actions{display:flex;gap:8px;}
+
+/* ===== FILTER ===== */
+.filter-row{display:flex;gap:9px;flex-wrap:wrap;background:var(--bg);border-radius:10px;
+  padding:13px;margin-bottom:18px;border:1px solid var(--border);}
+.filter-row input,.filter-row select{padding:8px 11px;border:1px solid var(--border);
+  border-radius:7px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text);}
+.filter-row input{flex:1;min-width:140px;}
+.filter-row input:focus,.filter-row select:focus{outline:none;border-color:var(--primary);}
+
+/* ===== TABLE ===== */
+.tbl-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--bg);color:var(--muted);font-weight:600;font-size:12px;
+  padding:11px 13px;text-align:right;border-bottom:2px solid var(--border);}
+td{padding:12px 13px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--primary-l);}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;
+  border-radius:20px;font-size:11px;font-weight:700;}
+.b-dep{background:var(--success-l);color:var(--success);}
+.b-wit{background:var(--danger-l);color:var(--danger);}
+.cat-chip{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;}
+
+.empty-state{text-align:center;padding:36px;color:var(--muted);}
+.empty-state div{font-size:34px;margin-bottom:8px;}
+
+/* ===== CHARTS ===== */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+@media(max-width:700px){.charts-grid{grid-template-columns:1fr;}}
+.chart-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  padding:20px;box-shadow:var(--shadow);}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--text);}
+.chart-wrap{position:relative;height:220px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+.stat-box{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  padding:18px;text-align:center;box-shadow:var(--shadow);}
+.stat-lbl{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.stat-val{font-size:18px;font-weight:800;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ===== MODAL ===== */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;
+  align-items:center;justify-content:center;padding:20px;}
+.modal.open{display:flex;}
+.modal-box{background:var(--card);border-radius:16px;padding:26px;width:100%;max-width:460px;
+  box-shadow:0 20px 60px rgba(0,0,0,.22);}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:18px;}
+.modal-body{display:flex;flex-direction:column;gap:11px;margin-bottom:20px;}
+.modal-body label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;display:block;}
+.modal-body select,.modal-body input{width:100%;padding:9px 12px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:inherit;font-size:14px;background:var(--card);color:var(--text);}
+.modal-footer{display:flex;gap:9px;justify-content:flex-end;}
+
+/* ===== PRINT ===== */
+@media print {
+  body{background:#fff!important;padding:0!important;}
+  .container>*:not(#printPreview){display:none!important;}
+  #printPreview{display:block!important;}
+}
+#printPreview{display:none;}
+.print-page{max-width:800px;margin:0 auto;padding:28px;direction:rtl;font-family:'Vazirmatn',Tahoma,sans-serif;}
+.print-hdr{border-bottom:3px solid #1e3a8a;padding-bottom:18px;margin-bottom:20px;
+  display:flex;justify-content:space-between;}
+.print-hdr h1{font-size:18px;color:#1e3a8a;font-weight:800;}
+.print-hdr p{font-size:12px;color:#718096;margin-top:4px;}
+.print-meta{font-size:12px;color:#718096;text-align:left;}
+.print-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.print-sum-box{border:1px solid #e2e8f0;border-radius:8px;padding:12px;text-align:center;}
+.print-sum-box span{display:block;font-size:11px;color:#718096;margin-bottom:4px;}
+.print-sum-box strong{font-size:16px;}
+.ptbl{width:100%;border-collapse:collapse;font-size:13px;}
+.ptbl th{background:#1e3a8a;color:#fff;padding:10px 12px;text-align:right;font-weight:600;}
+.ptbl td{padding:9px 12px;border-bottom:1px solid #e2e8f0;}
+.ptbl tr:nth-child(even) td{background:#f8fafc;}
+.p-dep{color:#0d9488;font-weight:700;} .p-wit{color:#e53e3e;font-weight:700;}
+.print-foot{margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;
+  text-align:center;font-size:11px;color:#a0aec0;}
+
+/* ===== PIN LOCK ===== */
+#lockScreen{position:fixed;inset:0;background:var(--header-grad);z-index:9999;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
+.lock-box{background:rgba(255,255,255,.1);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.2);border-radius:24px;padding:40px 36px;
+  text-align:center;width:100%;max-width:340px;}
+.lock-icon{font-size:44px;margin-bottom:16px;}
+.lock-title{color:#fff;font-size:20px;font-weight:800;margin-bottom:6px;}
+.lock-sub{color:rgba(255,255,255,.6);font-size:13px;margin-bottom:28px;}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:28px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.5);
+  background:transparent;transition:.2s;}
+.pin-dot.filled{background:#6ee7b7;border-color:#6ee7b7;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.pin-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);
+  color:#fff;border-radius:14px;padding:18px;font-size:20px;font-weight:700;
+  cursor:pointer;transition:.2s;font-family:inherit;}
+.pin-btn:hover{background:rgba(255,255,255,.22);}
+.pin-btn:active{transform:scale(.94);}
+.pin-btn.del{font-size:16px;}
+.pin-error{color:#fca5a5;font-size:13px;margin-top:12px;min-height:20px;}
+.pin-setup-note{color:rgba(255,255,255,.55);font-size:12px;margin-top:16px;}
+
+/* ===== ALERTS ===== */
+#alertsContainer{position:fixed;top:16px;left:50%;transform:translateX(-50%);
+  z-index:8888;display:flex;flex-direction:column;gap:8px;width:calc(100% - 32px);max-width:420px;}
+.toast{background:var(--card);border-radius:12px;padding:14px 16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);border-right:4px solid;
+  display:flex;align-items:flex-start;gap:12px;animation:slideIn .3s ease;font-size:13px;}
+.toast.warn{border-color:var(--warning);}
+.toast.danger{border-color:var(--danger);}
+.toast.success{border-color:var(--success);}
+.toast-icon{font-size:20px;flex-shrink:0;}
+.toast-body{flex:1;}
+.toast-title{font-weight:700;margin-bottom:3px;}
+.toast-msg{color:var(--muted);font-size:12px;}
+.toast-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== SETTINGS TAB ===== */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:600px){.settings-grid{grid-template-columns:1fr;}}
+.setting-row{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 0;border-bottom:1px solid var(--border);}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:14px;font-weight:600;}
+.setting-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;
+  right:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:var(--primary);}
+.toggle input:checked+.toggle-slider::before{right:calc(100% - 21px);}
+.alert-threshold-input{width:140px;padding:7px 10px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text);}
+.backup-btns{display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:600px){
+  body{padding:12px 10px;}
+
+  /* header */
+  header{padding:16px 16px;border-radius:12px;flex-direction:column;align-items:flex-start;gap:12px;}
+  .hd-title h1{font-size:15px;}
+  .hd-right{width:100%;justify-content:space-between;}
+  .total-pill{flex:1;padding:10px 12px;}
+  .total-pill strong{font-size:18px;}
+
+  /* tabs - آیکون‌دار روی موبایل */
+  .tabs{border-radius:10px;padding:4px;}
+  .tab{padding:9px 6px;font-size:11px;}
+  .tab-text{display:none;}
+
+  /* forms */
+  .grid2{grid-template-columns:1fr;}
+  .card{padding:16px;}
+  .cat-row{grid-template-columns:1fr;}
+
+  /* bank cards */
+  .banks-grid{grid-template-columns:1fr;}
+
+  /* section header */
+  .sec-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
+  .sec-actions{width:100%;flex-wrap:wrap;}
+  .sec-actions .btn{flex:1;font-size:11px;padding:8px 8px;}
+
+  /* filter */
+  .filter-row{flex-direction:column;gap:8px;padding:10px;}
+  .filter-row input,.filter-row select{width:100%;}
+
+  /* table - کارتی روی موبایل */
+  .tbl-scroll table thead{display:none;}
+  .tbl-scroll table tbody tr{
+    display:block;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:10px;
+    padding:12px;
+    box-shadow:var(--shadow);
+  }
+  .tbl-scroll table tbody tr:hover td{background:transparent;}
+  .tbl-scroll table tbody td{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:5px 2px;
+    border:none;
+    font-size:13px;
+  }
+  .tbl-scroll table tbody td::before{
+    content:attr(data-label);
+    font-size:11px;
+    color:var(--muted);
+    font-weight:600;
+    flex-shrink:0;
+    margin-left:8px;
+  }
+  .tbl-scroll table tbody td:last-child{justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border);margin-top:4px;}
+
+  /* stats */
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .stat-val{font-size:14px;}
+
+  /* charts */
+  .charts-grid{grid-template-columns:1fr;}
+  .chart-wrap{height:180px;}
+
+  /* modal */
+  .modal-box{padding:20px;border-radius:14px;}
+  .modal-footer{flex-direction:column-reverse;}
+  .modal-footer .btn{width:100%;}
+}
+
+@media(max-width:380px){
+  .stats-row{grid-template-columns:1fr;}
+  .tab{font-size:10px;}
+}
+</style>
+</head>
+<body>
+<!-- ALERTS CONTAINER -->
+<div id="alertsContainer"></div>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen" style="display:none">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title" id="lockTitle">ورود به پنل</div>
+    <div class="lock-sub" id="lockSub">پین ۴ رقمی خود را وارد کنید</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">۱</button>
+      <button class="pin-btn" onclick="pinPress('2')">۲</button>
+      <button class="pin-btn" onclick="pinPress('3')">۳</button>
+      <button class="pin-btn" onclick="pinPress('4')">۴</button>
+      <button class="pin-btn" onclick="pinPress('5')">۵</button>
+      <button class="pin-btn" onclick="pinPress('6')">۶</button>
+      <button class="pin-btn" onclick="pinPress('7')">۷</button>
+      <button class="pin-btn" onclick="pinPress('8')">۸</button>
+      <button class="pin-btn" onclick="pinPress('9')">۹</button>
+      <button class="pin-btn" onclick="pinClear()">پاک</button>
+      <button class="pin-btn" onclick="pinPress('0')">۰</button>
+      <button class="pin-btn del" onclick="pinBack()">⌫</button>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+    <div class="pin-setup-note" id="pinSetupNote"></div>
+    <button id="forgotPinBtn" onclick="showForgotPin()" style="margin-top:14px;background:none;border:none;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;display:none">فراموشی پین</button>
+  </div>
+  <!-- فراموشی پین -->
+  <div id="forgotPinPanel" style="display:none;width:100%;max-width:340px">
+    <div class="lock-box" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:12px">📱</div>
+      <div class="lock-title">بازیابی پین</div>
+      <div class="lock-sub" style="margin-bottom:20px">شماره تلفنی که هنگام ثبت پین وارد کردی را بنویس</div>
+      <input id="recoveryPhoneInput" type="tel" inputmode="numeric" placeholder="مثلاً: 09123456789"
+        style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.25);
+        background:rgba(255,255,255,.1);color:#fff;font-family:inherit;font-size:15px;text-align:center;
+        outline:none;margin-bottom:10px" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <div id="recoveryError" style="color:#fca5a5;font-size:12px;min-height:18px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="hideForgotPin()" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);
+          background:rgba(255,255,255,.08);color:#fff;font-family:inherit;font-size:13px;cursor:pointer">انصراف</button>
+        <button onclick="verifyRecoveryPhone()" style="flex:1;padding:12px;border-radius:10px;border:none;
+          background:#6ee7b7;color:#064e3b;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">تأیید</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- HEADER -->
+<header>
+  <div class="hd-title">
+    <h1>💳 پنل مدیریت حساب‌های بانکی</h1>
+    <p>مدیریت یکپارچه موجودی و تراکنش‌های مالی</p>
+  </div>
+  <div class="hd-right">
+    <div class="total-pill">
+      <span>مجموع دارایی</span>
+      <strong id="totalCapital">۰ تومان</strong>
+    </div>
+    <button class="dark-btn" onclick="toggleDark()" title="حالت تاریک">🌙</button>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('accounts',this)">🏦 <span class="tab-text">حساب‌ها</span></button>
+  <button class="tab" onclick="switchTab('transactions',this)">📋 <span class="tab-text">تراکنش‌ها</span></button>
+  <button class="tab" onclick="switchTab('stats',this)">📊 <span class="tab-text">آمار</span></button>
+  <button class="tab" onclick="switchTab('settings',this)">⚙️ <span class="tab-text">تنظیمات</span></button>
+</div>
+
+<!-- TAB: ACCOUNTS -->
+<div id="tab-accounts" class="tab-content active">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title"><div class="ci ci-blue">➕</div> افزودن حساب جدید</div>
+      <div class="vf">
+        <input type="text" id="newBankName" placeholder="نام بانک (مثلاً: پاسارگاد)" autocomplete="off">
+        <input type="text" id="newAccountNum" placeholder="شماره حساب یا کارت" autocomplete="off">
+        <div class="amt-wrap">
+          <input type="text" id="newBankBalance" placeholder="موجودی اولیه" autocomplete="off" inputmode="numeric" oninput="fmtAmt(this,'prevBalance')">
+          <span class="amt-badge" id="prevBalance"></span>
+        </div>
+        <button class="btn btn-p" onclick="addNewBank()">ایجاد حساب</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="ci ci-green">🔄</div> ثبت تراکنش</div>
+      <div class="vf">
+        <select id="txBankSelect"><option value="" disabled selected>انتخاب بانک...</option></select>
+        <select id="txType">
+          <option value="deposit">▲ واریز (+)</option>
+          <option value="withdraw">▼ برداشت (−)</option>
+        </select>
+        <div class="amt-wrap">
+          <input type="text" id="txAmount" placeholder="مبلغ تراکنش" autocomplete="off" inputmode="numeric" oninput="fmtAmt(this,'prevTxAmt')">
+          <span class="amt-badge" id="prevTxAmt"></span>
+        </div>
+        <input type="text" id="txDesc" placeholder="توضیحات (اختیاری)" autocomplete="off">
+        <div class="cat-row">
+          <select id="txCategory">
+            <option value="">دسته‌بندی...</option>
+            <option value="حقوق">💼 حقوق</option>
+            <option value="خرید">🛒 خرید</option>
+            <option value="اجاره">🏠 اجاره</option>
+            <option value="قبض">💡 قبض</option>
+            <option value="سرمایه‌گذاری">📈 سرمایه‌گذاری</option>
+            <option value="تفریح">🎉 تفریح</option>
+            <option value="درمان">🏥 درمان</option>
+            <option value="سایر">📌 سایر</option>
+          </select>
+          <select id="txMonth" style="display:none"></select>
+        </div>
+        <button class="btn btn-g" onclick="handleTransaction()">ثبت تراکنش</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-hdr">
+    <span class="sec-lbl">🏦 حساب‌های فعال</span>
+  </div>
+  <div class="banks-grid" id="banksGrid"></div>
+</div>
+
+<!-- TAB: TRANSACTIONS -->
+<div id="tab-transactions" class="tab-content">
+  <div class="card">
+    <div class="sec-hdr">
+      <span class="sec-lbl">📋 ریز تراکنش‌ها</span>
+      <div class="sec-actions">
+        <button class="btn btn-warn btn-sm" onclick="exportCSV()">📥 خروجی CSV</button>
+        <button class="btn btn-o btn-sm" onclick="exportExcel()">📊 خروجی اکسل</button>
+        <button class="btn btn-o btn-sm" onclick="openPrintModal()">🖨️ چاپ</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <input type="text" id="searchFilter" placeholder="🔍 جستجو در توضیحات..." oninput="renderTransactions()">
+      <select id="bankFilter" onchange="renderTransactions()"><option value="all">همه بانک‌ها</option></select>
+      <select id="typeFilter" onchange="renderTransactions()">
+        <option value="all">همه</option>
+        <option value="deposit">واریزی‌ها</option>
+        <option value="withdraw">برداشتی‌ها</option>
+      </select>
+      <select id="catFilter" onchange="renderTransactions()">
+        <option value="all">همه دسته‌ها</option>
+        <option value="حقوق">💼 حقوق</option>
+        <option value="خرید">🛒 خرید</option>
+        <option value="اجاره">🏠 اجاره</option>
+        <option value="قبض">💡 قبض</option>
+        <option value="سرمایه‌گذاری">📈 سرمایه‌گذاری</option>
+        <option value="تفریح">🎉 تفریح</option>
+        <option value="درمان">🏥 درمان</option>
+        <option value="سایر">📌 سایر</option>
+      </select>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr>
+          <th>بانک</th><th>نوع</th><th>مبلغ (تومان)</th>
+          <th>دسته‌بندی</th><th>توضیحات</th><th>تاریخ</th><th></th>
+        </tr></thead>
+        <tbody id="txTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: STATS -->
+<div id="tab-stats" class="tab-content">
+  <div class="stats-row" id="statsRow"></div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">📈 روند ماهانه واریز و برداشت</div>
+      <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🍩 تراکنش‌ها بر اساس دسته‌بندی</div>
+      <div class="chart-wrap"><canvas id="chartCategory"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-bottom:22px;">
+    <div class="chart-title">🏦 مقایسه موجودی بانک‌ها</div>
+    <div class="chart-wrap"><canvas id="chartBanks"></canvas></div>
+  </div>
+</div>
+
+<!-- TAB: SETTINGS -->
+<div id="tab-settings" class="tab-content">
+  <div class="settings-grid">
+
+    <!-- پشتیبان‌گیری -->
+    <div class="card">
+      <div class="card-title">💾 پشتیبان‌گیری و بازیابی</div>
+      <div class="setting-row">
+        <div><div class="setting-label">دانلود پشتیبان</div><div class="setting-sub">ذخیره همه اطلاعات به فایل JSON</div></div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">بازیابی از فایل</div><div class="setting-sub">بارگذاری اطلاعات از فایل JSON</div></div>
+      </div>
+      <div class="backup-btns" style="margin-top:16px">
+        <button class="btn btn-p" onclick="backupData()">📥 دانلود پشتیبان</button>
+        <button class="btn btn-o" onclick="document.getElementById('restoreFile').click()">📤 بازیابی</button>
+        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreData(event)">
+      </div>
+      <div style="margin-top:14px;padding:12px;background:var(--warning-l);border-radius:8px;font-size:12px;color:var(--warning);border:1px solid var(--warning)33">
+        ⚠️ بازیابی از فایل، اطلاعات فعلی را جایگزین می‌کند.
+      </div>
+    </div>
+
+    <!-- قفل پین -->
+    <div class="card">
+      <div class="card-title">🔐 قفل با پین</div>
+      <div class="setting-row">
+        <div><div class="setting-label">فعال‌سازی قفل</div><div class="setting-sub">هنگام باز شدن صفحه پین بخواد</div></div>
+        <label class="toggle"><input type="checkbox" id="pinToggle" onchange="togglePin(this)"><span class="toggle-slider"></span></label>
+      </div>
+      <div id="pinChangeSection" style="display:none;margin-top:14px">
+        <div class="setting-row" style="padding-top:0">
+          <div><div class="setting-label">تغییر پین</div><div class="setting-sub">پین جدید ۴ رقمی تعیین کن</div></div>
+          <button class="btn btn-o btn-sm" onclick="startChangePin()">تغییر پین</button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">حذف قفل</div><div class="setting-sub">پین را کاملاً حذف کن</div></div>
+          <button class="btn btn-danger btn-sm" onclick="removePin()">حذف</button>
+        </div>
+        <div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">📱 شماره بازیابی</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">برای فراموشی پین استفاده می‌شه</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="tel" id="recoveryPhoneSetting" inputmode="numeric" placeholder="09123456789"
+              style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;
+              font-family:inherit;font-size:13px;background:var(--card);color:var(--text)"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <button class="btn btn-p btn-sm" onclick="saveRecoveryPhone()">ذخیره</button>
+          </div>
+          <div id="recoveryPhoneStatus" style="font-size:11px;color:var(--success);margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- هشدار موجودی -->
+    <div class="card">
+      <div class="card-title">🔔 هشدار موجودی پایین</div>
+      <div class="setting-row">
+        <div><div class="setting-label">فعال‌سازی هشدار</div><div class="setting-sub">وقتی موجودی کمتر از حد شد خبر بده</div></div>
+        <label class="toggle"><input type="checkbox" id="alertToggle" onchange="saveAlertSettings()"><span class="toggle-slider"></span></label>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">حد هشدار (تومان)</div>
+        <input type="text" class="alert-threshold-input" id="alertThreshold" placeholder="مثلاً: 1,000,000" inputmode="numeric" oninput="fmtThreshold(this)" onchange="saveAlertSettings()">
+        <span style="display:block;font-size:11px;color:var(--primary);margin-top:4px" id="thresholdPreview"></span>
+      </div>
+      <div id="bankAlertList" style="margin-top:16px"></div>
+    </div>
+
+    <!-- اطلاعات -->
+    <div class="card">
+      <div class="card-title">ℹ️ اطلاعات</div>
+      <div class="setting-row">
+        <div><div class="setting-label">تعداد حساب‌ها</div></div>
+        <strong id="infoAccounts">—</strong>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">تعداد تراکنش‌ها</div></div>
+        <strong id="infoTx">—</strong>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">آخرین پشتیبان</div></div>
+        <span id="infoLastBackup" style="font-size:12px;color:var(--muted)">—</span>
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑 پاک کردن همه اطلاعات</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PRINT PREVIEW -->
+<div id="printPreview"></div>
+
+</div><!-- /container -->
+
+<!-- MODAL RESTORE -->
+<div class="modal" id="restoreModal">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-title">📤 بازیابی اطلاعات</div>
+    <p id="restoreModalInfo" style="font-size:13px;color:var(--muted);margin-bottom:18px"></p>
+    <p style="font-size:13px;margin-bottom:20px">چطور بازیابی شود؟</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+      <button class="btn btn-p" onclick="doRestore('merge')" style="justify-content:flex-start;gap:12px;padding:14px 16px">
+        <span style="font-size:20px">➕</span>
+        <div style="text-align:right">
+          <div style="font-weight:700">ادغام با اطلاعات فعلی</div>
+          <div style="font-size:11px;opacity:.75;font-weight:400">حساب‌ها و تراکنش‌های جدید اضافه می‌شن، تکراری‌ها نادیده گرفته می‌شن</div>
+        </div>
+      </button>
+      <button class="btn btn-danger" onclick="doRestore('replace')" style="justify-content:flex-start;gap:12px;padding:14px 16px">
+        <span style="font-size:20px">🔄</span>
+        <div style="text-align:right">
+          <div style="font-weight:700">جایگزین کامل</div>
+          <div style="font-size:11px;opacity:.75;font-weight:400">اطلاعات فعلی پاک می‌شه و فایل جدید جاش میاد</div>
+        </div>
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-o" onclick="closeRestoreModal()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRINT -->
+<div class="modal" id="printModal">
+  <div class="modal-box">
+    <div class="modal-title">🖨️ تنظیمات چاپ</div>
+    <div class="modal-body">
+      <div><label>بانک</label><select id="pBankFilter"><option value="all">همه بانک‌ها</option></select></div>
+      <div><label>نوع تراکنش</label>
+        <select id="pTypeFilter">
+          <option value="all">همه</option>
+          <option value="deposit">واریزی‌ها</option>
+          <option value="withdraw">برداشتی‌ها</option>
+        </select>
+      </div>
+      <div><label>از تاریخ (اختیاری)</label><input type="date" id="pDateFrom"></div>
+      <div><label>تا تاریخ (اختیاری)</label><input type="date" id="pDateTo"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-o" onclick="closePrintModal()">انصراف</button>
+      <button class="btn btn-p" onclick="doPrint()">🖨️ چاپ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DARK MODE =====================
+const prefersDark = localStorage.getItem('darkMode') === '1';
+if (prefersDark) document.body.classList.add('dark');
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('darkMode', document.body.classList.contains('dark') ? '1' : '0');
+  setTimeout(renderCharts, 100);
+}
+
+// ===================== TABS =====================
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'stats') renderCharts();
+}
+
+// ===================== DATA =====================
+let data = JSON.parse(localStorage.getItem('bpd_v3')) || {
+  banks: [
+    {id:1, name:'بانک ملی', account:'6037***1234', balance:45000000},
+    {id:2, name:'بانک ملت', account:'6104***5678', balance:12500000}
+  ],
+  transactions: [
+    {id:1,bankId:1,bankName:'بانک ملی',type:'deposit',amount:5000000,desc:'حقوق ماهانه',category:'حقوق',date:'۱۴۰۵/۰۳/۱۷ - ۱۰:۳۰',rawDate:'2026-06-07',jalaliMonth:'۱۴۰۵/۰۳'},
+    {id:2,bankId:2,bankName:'بانک ملت',type:'withdraw',amount:1200000,desc:'خرید سوپرمارکت',category:'خرید',date:'۱۴۰۵/۰۳/۱۶ - ۱۸:۱۵',rawDate:'2026-06-06',jalaliMonth:'۱۴۰۵/۰۳'},
+    {id:3,bankId:1,bankName:'بانک ملی',type:'withdraw',amount:800000,desc:'قبض برق',category:'قبض',date:'۱۴۰۵/۰۲/۲۸ - ۰۹:۰۰',rawDate:'2026-05-18',jalaliMonth:'۱۴۰۵/۰۲'},
+    {id:4,bankId:1,bankName:'بانک ملی',type:'deposit',amount:3000000,desc:'پاداش',category:'حقوق',date:'۱۴۰۵/۰۲/۱۵ - ۱۲:۰۰',rawDate:'2026-05-05',jalaliMonth:'۱۴۰۵/۰۲'},
+  ]
+};
+
+function save() { localStorage.setItem('bpd_v3', JSON.stringify(data)); }
+function money(n) { return Number(n).toLocaleString('fa-IR') + ' تومان'; }
+function moneyNum(n) { return Number(n).toLocaleString('fa-IR'); }
+
+// ===================== JALALI =====================
+function toJalali(gy,gm,gd) {
+  const gdm=[0,31,59,90,120,151,181,212,243,273,304,334];
+  let jy=(gy<=1600)?0:979; gy-=(gy<=1600)?621:1600;
+  const gy2=(gm>2)?(gy+1):gy;
+  let days=(365*gy)+(Math.floor((gy2+3)/4))-(Math.floor((gy2+99)/100))
+    +(Math.floor((gy2+399)/400))-80+gd+gdm[gm-1];
+  jy+=33*Math.floor(days/12053); days%=12053;
+  jy+=4*Math.floor(days/1461); days%=1461;
+  if(days>365){jy+=Math.floor((days-1)/365);days=(days-1)%365;}
+  const jm=(days<186)?1+Math.floor(days/31):7+Math.floor((days-186)/30);
+  const jd=1+((days<186)?(days%31):((days-186)%30));
+  return [jy,jm,jd];
+}
+function p(n){return String(n).padStart(2,'0');}
+function toPersian(s){return String(s).replace(/[0-9]/g,w=>'۰۱۲۳۴۵۶۷۸۹'[+w]);}
+function getDateTime(){
+  const now=new Date();
+  const [jy,jm,jd]=toJalali(now.getFullYear(),now.getMonth()+1,now.getDate());
+  return toPersian(`${jy}/${p(jm)}/${p(jd)}`) + ' - ' + toPersian(`${p(now.getHours())}:${p(now.getMinutes())}`);
+}
+function getJalaliMonth(){
+  const now=new Date();
+  const [jy,jm]=toJalali(now.getFullYear(),now.getMonth()+1,now.getDate());
+  return toPersian(`${jy}/${p(jm)}`);
+}
+function getRawDate(){return new Date().toISOString().split('T')[0];}
+
+// ===================== FORMAT AMOUNT INPUT =====================
+function fmtAmt(input, previewId) {
+  let raw = input.value.replace(/[^0-9]/g,'');
+  if(!raw){input.value=''; document.getElementById(previewId).textContent=''; return;}
+  const num = parseInt(raw,10);
+  input.value = num.toLocaleString('en-US');
+  let label='';
+  if(num>=1e12) label=(num/1e12).toFixed(1).replace(/\.0$/,'') + ' هزار میلیارد';
+  else if(num>=1e9) label=(num/1e9).toFixed(1).replace(/\.0$/,'') + ' میلیارد';
+  else if(num>=1e6) label=(num/1e6).toFixed(1).replace(/\.0$/,'') + ' میلیون';
+  else if(num>=1e3) label=(num/1e3).toFixed(1).replace(/\.0$/,'') + ' هزار';
+  const prev=document.getElementById(previewId);
+  prev.textContent = label ? toPersian(label)+' تومان' : money(num);
+}
+function getRawAmt(id){
+  return parseFloat(document.getElementById(id).value.replace(/,/g,''))||0;
+}
+
+// ===================== CATEGORY COLORS =====================
+const catColors = {
+  'حقوق':'#3b82f6','خرید':'#f59e0b','اجاره':'#8b5cf6','قبض':'#6366f1',
+  'سرمایه‌گذاری':'#10b981','تفریح':'#ec4899','درمان':'#ef4444','سایر':'#94a3b8',''  :'#cbd5e1'
+};
+const catEmoji = {'حقوق':'💼','خرید':'🛒','اجاره':'🏠','قبض':'💡','سرمایه‌گذاری':'📈','تفریح':'🎉','درمان':'🏥','سایر':'📌',''  :'—'};
+
+// ===================== INIT =====================
+function updateSummary(){
+  const total=data.banks.reduce((s,b)=>s+b.balance,0);
+  document.getElementById('totalCapital').textContent=money(total);
+}
+
+function syncDropdowns(){
+  // tx bank select
+  const sel=document.getElementById('txBankSelect'), cur=sel.value;
+  sel.innerHTML='<option value="" disabled selected>انتخاب بانک...</option>';
+  data.banks.forEach(b=>{sel.innerHTML+=`<option value="${b.id}">${b.name}</option>`;});
+  if(cur) sel.value=cur;
+  // bank filter
+  const bf=document.getElementById('bankFilter'), bfc=bf.value;
+  bf.innerHTML='<option value="all">همه بانک‌ها</option>';
+  data.banks.forEach(b=>{bf.innerHTML+=`<option value="${b.id}">${b.name}</option>`;});
+  bf.value=bfc||'all';
+  // print modal bank
+  const pf=document.getElementById('pBankFilter');
+  pf.innerHTML='<option value="all">همه بانک‌ها</option>';
+  data.banks.forEach(b=>{pf.innerHTML+=`<option value="${b.id}">${b.name}</option>`;});
+}
+
+// ===================== BANKS =====================
+function renderBanks(){
+  const grid=document.getElementById('banksGrid');
+  if(!data.banks.length){grid.innerHTML='<div style="color:var(--muted);font-size:14px">هیچ حسابی ثبت نشده.</div>';return;}
+  grid.innerHTML=data.banks.map(b=>`
+    <div class="bcard">
+      <div class="bcard-head">
+        <div><div class="bname">${b.name}</div><div class="bacc">${b.account}</div></div>
+      </div>
+      <div class="bbal-box">
+        <div class="bbal-lbl">موجودی فعلی</div>
+        <div class="bbal-amt" style="color:${b.balance>=0?'var(--text)':'var(--danger)'}">
+          ${money(b.balance)}
+        </div>
+      </div>
+      <div class="bcard-actions">
+        <button class="btn btn-danger btn-sm" onclick="deleteBank(${b.id})">🗑 حذف</button>
+      </div>
+    </div>`).join('');
+}
+
+function addNewBank(){
+  const name=document.getElementById('newBankName').value.trim();
+  const account=document.getElementById('newAccountNum').value.trim();
+  const balance=getRawAmt('newBankBalance');
+  if(!name||!account){alert('نام بانک و شماره حساب را وارد کنید.');return;}
+  data.banks.push({id:Date.now(),name,account,balance});
+  save();
+  ['newBankName','newAccountNum','newBankBalance'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prevBalance').textContent='';
+  init();
+}
+
+function deleteBank(id){
+  const b=data.banks.find(x=>x.id===id);
+  if(!b||!confirm(`حساب "${b.name}" و تراکنش‌های آن حذف شود؟`))return;
+  data.banks=data.banks.filter(x=>x.id!==id);
+  data.transactions=data.transactions.filter(x=>x.bankId!==id);
+  save(); init();
+}
+
+// ===================== TRANSACTIONS =====================
+function handleTransaction(){
+  const bankId=parseInt(document.getElementById('txBankSelect').value);
+  const type=document.getElementById('txType').value;
+  const amount=getRawAmt('txAmount');
+  const desc=document.getElementById('txDesc').value.trim();
+  const category=document.getElementById('txCategory').value;
+  if(!bankId){alert('بانک را انتخاب کنید.');return;}
+  if(!amount||amount<=0){alert('مبلغ را وارد کنید.');return;}
+  const bank=data.banks.find(b=>b.id===bankId);
+  if(!bank)return;
+  if(type==='withdraw'&&bank.balance<amount){
+    alert(`موجودی کافی نیست!\nموجودی: ${bank.balance.toLocaleString()} تومان`);return;
+  }
+  bank.balance+=(type==='deposit'?amount:-amount);
+  data.transactions.push({
+    id:Date.now(), bankId:bank.id, bankName:bank.name,
+    type, amount, desc:desc||(type==='deposit'?'واریز دستی':'برداشت دستی'),
+    category, date:getDateTime(), rawDate:getRawDate(), jalaliMonth:getJalaliMonth()
+  });
+  save();
+  document.getElementById('txAmount').value='';
+  document.getElementById('prevTxAmt').textContent='';
+  document.getElementById('txDesc').value='';
+  init();
+}
+
+function getFiltered(){
+  const search=document.getElementById('searchFilter').value.trim();
+  const bankId=document.getElementById('bankFilter').value;
+  const type=document.getElementById('typeFilter').value;
+  const cat=document.getElementById('catFilter').value;
+  return data.transactions.filter(tx=>{
+    return (!search||tx.desc.includes(search))&&
+      (bankId==='all'||String(tx.bankId)===bankId)&&
+      (type==='all'||tx.type===type)&&
+      (cat==='all'||tx.category===cat);
+  }).slice().reverse();
+}
+
+function renderTransactions(){
+  const tbody=document.getElementById('txTableBody');
+  const list=getFiltered();
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div>📭</div><p>تراکنشی یافت نشد.</p></div></td></tr>`;return;
+  }
+  tbody.innerHTML=list.map(tx=>{
+    const col=catColors[tx.category||'']||'#94a3b8';
+    const em=catEmoji[tx.category||'']||'—';
+    return `<tr>
+      <td data-label="بانک"><b>${tx.bankName}</b></td>
+      <td data-label="نوع"><span class="badge ${tx.type==='deposit'?'b-dep':'b-wit'}">${tx.type==='deposit'?'▲ واریز':'▼ برداشت'}</span></td>
+      <td data-label="مبلغ"><b style="color:${tx.type==='deposit'?'var(--success)':'var(--danger)'}">${moneyNum(tx.amount)}</b></td>
+      <td data-label="دسته"><span class="cat-chip" style="background:${col}22;color:${col}">${em} ${tx.category||'—'}</span></td>
+      <td data-label="توضیحات" style="color:var(--muted)">${tx.desc||'---'}</td>
+      <td data-label="تاریخ" style="color:var(--muted);font-size:11px">${tx.date}</td>
+      <td><button class="btn btn-o btn-sm" onclick="printSingleTx(${tx.id})">🖨️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===================== EXPORT CSV =====================
+function exportCSV(){
+  const list=getFiltered();
+  const BOM='\uFEFF';
+  const header='بانک,نوع,مبلغ,دسته‌بندی,توضیحات,تاریخ\n';
+  const rows=list.map(tx=>`${tx.bankName},${tx.type==='deposit'?'واریز':'برداشت'},${tx.amount},${tx.category||''},${tx.desc||''},${tx.date}`).join('\n');
+  const blob=new Blob([BOM+header+rows],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='transactions.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===================== EXPORT EXCEL (XHTML table trick) =====================
+function exportExcel(){
+  const list=getFiltered();
+  let tbl='<table><tr><th>بانک</th><th>نوع</th><th>مبلغ</th><th>دسته‌بندی</th><th>توضیحات</th><th>تاریخ</th></tr>';
+  list.forEach(tx=>{
+    tbl+=`<tr><td>${tx.bankName}</td><td>${tx.type==='deposit'?'واریز':'برداشت'}</td><td>${tx.amount}</td><td>${tx.category||''}</td><td>${tx.desc||''}</td><td>${tx.date}</td></tr>`;
+  });
+  tbl+='</table>';
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body dir="rtl">${tbl}</body></html>`;
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='transactions.xls'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===================== CHARTS =====================
+let chartInstances={};
+function renderCharts(){
+  renderStatsRow();
+  renderMonthlyChart();
+  renderCategoryChart();
+  renderBanksChart();
+}
+
+function isDark(){return document.body.classList.contains('dark');}
+function chartDefaults(){
+  return {
+    color: isDark()?'#94a3b8':'#718096',
+    gridColor: isDark()?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)',
+  };
+}
+
+function renderStatsRow(){
+  const totalDep=data.transactions.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0);
+  const totalWit=data.transactions.filter(t=>t.type==='withdraw').reduce((s,t)=>s+t.amount,0);
+  const net=totalDep-totalWit;
+  const count=data.transactions.length;
+  document.getElementById('statsRow').innerHTML=`
+    <div class="stat-box">
+      <div class="stat-lbl">مجموع واریز</div>
+      <div class="stat-val" style="color:var(--success)">${money(totalDep)}</div>
+      <div class="stat-sub">${toPersian(data.transactions.filter(t=>t.type==='deposit').length)} تراکنش</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">مجموع برداشت</div>
+      <div class="stat-val" style="color:var(--danger)">${money(totalWit)}</div>
+      <div class="stat-sub">${toPersian(data.transactions.filter(t=>t.type==='withdraw').length)} تراکنش</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">خالص جریان</div>
+      <div class="stat-val" style="color:${net>=0?'var(--success)':'var(--danger)'}">${money(net)}</div>
+      <div class="stat-sub">${toPersian(count)} تراکنش کل</div>
+    </div>`;
+}
+
+function renderMonthlyChart(){
+  const months={};
+  data.transactions.forEach(tx=>{
+    const m=tx.jalaliMonth||'نامشخص';
+    if(!months[m]) months[m]={dep:0,wit:0};
+    if(tx.type==='deposit') months[m].dep+=tx.amount/1e6;
+    else months[m].wit+=tx.amount/1e6;
+  });
+  const labels=Object.keys(months).sort();
+  const deps=labels.map(m=>months[m].dep);
+  const wits=labels.map(m=>months[m].wit);
+  const cd=chartDefaults();
+  destroyChart('chartMonthly');
+  chartInstances['chartMonthly']=new Chart(document.getElementById('chartMonthly'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'واریز (میلیون)',data:deps,backgroundColor:'rgba(13,148,136,.7)',borderRadius:6},
+      {label:'برداشت (میلیون)',data:wits,backgroundColor:'rgba(229,62,62,.7)',borderRadius:6}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:cd.color,font:{family:'Vazirmatn'}}}},
+      scales:{
+        x:{ticks:{color:cd.color,font:{family:'Vazirmatn'}},grid:{color:cd.gridColor}},
+        y:{ticks:{color:cd.color,font:{family:'Vazirmatn'}},grid:{color:cd.gridColor}}
+      }
+    }
+  });
+}
+
+function renderCategoryChart(){
+  const cats={};
+  data.transactions.forEach(tx=>{
+    const c=tx.category||'سایر';
+    cats[c]=(cats[c]||0)+tx.amount;
+  });
+  const labels=Object.keys(cats);
+  const vals=labels.map(c=>cats[c]);
+  const colors=labels.map(c=>catColors[c]||'#94a3b8');
+  const cd=chartDefaults();
+  destroyChart('chartCategory');
+  chartInstances['chartCategory']=new Chart(document.getElementById('chartCategory'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:2,borderColor:isDark()?'#1e293b':'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{position:'bottom',labels:{color:cd.color,font:{family:'Vazirmatn'},padding:10}}}
+    }
+  });
+}
+
+function renderBanksChart(){
+  const cd=chartDefaults();
+  destroyChart('chartBanks');
+  chartInstances['chartBanks']=new Chart(document.getElementById('chartBanks'),{
+    type:'bar',
+    data:{
+      labels:data.banks.map(b=>b.name),
+      datasets:[{
+        label:'موجودی (میلیون تومان)',
+        data:data.banks.map(b=>+(b.balance/1e6).toFixed(2)),
+        backgroundColor:data.banks.map((_,i)=>`hsl(${220+i*40},70%,55%)`),
+        borderRadius:8
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:cd.color,font:{family:'Vazirmatn'}},grid:{color:cd.gridColor}},
+        y:{ticks:{color:cd.color,font:{family:'Vazirmatn'}},grid:{color:cd.gridColor}}
+      }
+    }
+  });
+}
+
+function destroyChart(id){
+  if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}
+}
+
+// ===================== PRINT =====================
+function openPrintModal(){ syncDropdowns(); document.getElementById('printModal').classList.add('open'); }
+function closePrintModal(){ document.getElementById('printModal').classList.remove('open'); }
+document.getElementById('printModal').addEventListener('click',function(e){if(e.target===this)closePrintModal();});
+
+function getPrintList(){
+  const bankId=document.getElementById('pBankFilter').value;
+  const type=document.getElementById('pTypeFilter').value;
+  const from=document.getElementById('pDateFrom').value;
+  const to=document.getElementById('pDateTo').value;
+  return data.transactions.filter(tx=>{
+    return (bankId==='all'||String(tx.bankId)===bankId)&&
+      (type==='all'||tx.type===type)&&
+      (!from||tx.rawDate>=from)&&(!to||tx.rawDate<=to);
+  }).slice().reverse();
+}
+
+function buildPrintHTML(list,bankLabel,typeLabel){
+  const dep=list.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0);
+  const wit=list.filter(t=>t.type==='withdraw').reduce((s,t)=>s+t.amount,0);
+  const net=dep-wit;
+  const now=new Date(); const [jy,jm,jd]=toJalali(now.getFullYear(),now.getMonth()+1,now.getDate());
+  const today=toPersian(`${jy}/${p(jm)}/${p(jd)}`);
+  const rows=list.map(tx=>`<tr>
+    <td>${tx.bankName}</td>
+    <td class="${tx.type==='deposit'?'p-dep':'p-wit'}">${tx.type==='deposit'?'واریز':'برداشت'}</td>
+    <td class="${tx.type==='deposit'?'p-dep':'p-wit'}">${Number(tx.amount).toLocaleString('fa-IR')}</td>
+    <td>${tx.category||'—'}</td><td>${tx.desc||'—'}</td><td>${tx.date}</td>
+  </tr>`).join('');
+  return `<div class="print-page">
+    <div class="print-hdr">
+      <div><h1>💳 گزارش تراکنش‌های مالی</h1><p>بانک: ${bankLabel} | نوع: ${typeLabel}</p></div>
+      <div class="print-meta"><div>تاریخ: ${today}</div><div>تعداد: ${toPersian(list.length)}</div></div>
+    </div>
+    <div class="print-sum">
+      <div class="print-sum-box"><span>مجموع واریز</span><strong style="color:#0d9488">${money(dep)}</strong></div>
+      <div class="print-sum-box"><span>مجموع برداشت</span><strong style="color:#e53e3e">${money(wit)}</strong></div>
+      <div class="print-sum-box"><span>خالص</span><strong style="color:${net>=0?'#0d9488':'#e53e3e'}">${money(net)}</strong></div>
+    </div>
+    <table class="ptbl"><thead><tr><th>بانک</th><th>نوع</th><th>مبلغ</th><th>دسته</th><th>توضیحات</th><th>تاریخ</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="print-foot">این گزارش توسط سیستم مدیریت حساب‌های بانکی صادر شده است.</div>
+  </div>`;
+}
+
+function doPrint(){
+  const list=getPrintList();
+  if(!list.length){alert('تراکنشی یافت نشد.');return;}
+  const bankId=document.getElementById('pBankFilter').value;
+  const bLabel=bankId==='all'?'همه':(data.banks.find(b=>String(b.id)===bankId)?.name||'');
+  const tLabel={'all':'همه','deposit':'واریزی','withdraw':'برداشتی'}[document.getElementById('pTypeFilter').value];
+  closePrintModal();
+  const prev=document.getElementById('printPreview');
+  prev.innerHTML=buildPrintHTML(list,bLabel,tLabel);
+  prev.style.display='block';
+  setTimeout(()=>{window.print();prev.style.display='none';},200);
+}
+
+function printSingleTx(txId){
+  const tx=data.transactions.find(t=>t.id===txId);
+  if(!tx)return;
+  const prev=document.getElementById('printPreview');
+  prev.innerHTML=buildPrintHTML([tx],tx.bankName,tx.type==='deposit'?'واریز':'برداشت');
+  prev.style.display='block';
+  setTimeout(()=>{window.print();prev.style.display='none';},200);
+}
+
+// ===================== PIN LOCK =====================
+let pinBuffer = '';
+let pinMode = 'unlock'; // 'unlock' | 'setup' | 'change-old' | 'change-new' | 'confirm'
+let pinTemp = '';
+let pinPrevMode = '';
+
+function getStoredPin() { return localStorage.getItem('bpd_pin'); }
+function isPinEnabled() { return localStorage.getItem('bpd_pin_enabled') === '1'; }
+
+function initPin() {
+  const enabled = isPinEnabled();
+  const hasPIN = !!getStoredPin();
+  document.getElementById('pinToggle').checked = enabled;
+  document.getElementById('pinChangeSection').style.display = (enabled && hasPIN) ? '' : 'none';
+  if (enabled && hasPIN) {
+    showLock('unlock');
+  } else {
+    document.getElementById('lockScreen').style.display = 'none';
+  }
+}
+
+function showLock(mode) {
+  pinMode = mode;
+  pinBuffer = '';
+  // pinTemp را اینجا پاک نکن - در processPIN مدیریت می‌شه
+  updateDots();
+  document.getElementById('pinError').textContent = '';
+  const ls = document.getElementById('lockScreen');
+  ls.style.display = 'flex';
+  const forgotBtn = document.getElementById('forgotPinBtn');
+  if (mode === 'unlock') {
+    document.getElementById('lockTitle').textContent = 'ورود به پنل';
+    document.getElementById('lockSub').textContent = 'پین ۴ رقمی خود را وارد کنید';
+    document.getElementById('pinSetupNote').textContent = '';
+    if (forgotBtn) forgotBtn.style.display = localStorage.getItem('bpd_recovery_phone') ? 'block' : 'none';
+  } else if (mode === 'setup') {
+    if (forgotBtn) forgotBtn.style.display = 'none';
+    document.getElementById('lockTitle').textContent = 'تعیین پین جدید';
+    document.getElementById('lockSub').textContent = 'پین ۴ رقمی دلخواه را وارد کنید';
+    document.getElementById('pinSetupNote').textContent = '';
+  } else if (mode === 'confirm') {
+    document.getElementById('lockTitle').textContent = 'تأیید پین';
+    document.getElementById('lockSub').textContent = 'پین را دوباره وارد کنید';
+    document.getElementById('pinSetupNote').textContent = '';
+  } else if (mode === 'change-old') {
+    document.getElementById('lockTitle').textContent = 'تغییر پین';
+    document.getElementById('lockSub').textContent = 'پین فعلی را وارد کنید';
+    document.getElementById('pinSetupNote').textContent = '';
+  } else if (mode === 'change-new') {
+    document.getElementById('lockTitle').textContent = 'پین جدید';
+    document.getElementById('lockSub').textContent = 'پین جدید ۴ رقمی را وارد کنید';
+    document.getElementById('pinSetupNote').textContent = '';
+  }
+}
+
+function hideLock() {
+  document.getElementById('lockScreen').style.display = 'none';
+}
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d' + i);
+    d.classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function pinPress(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updateDots();
+  document.getElementById('pinError').textContent = '';
+  if (pinBuffer.length === 4) {
+    setTimeout(processPIN, 200);
+  }
+}
+
+function pinBack() {
+  if (pinBuffer.length > 0) {
+    pinBuffer = pinBuffer.slice(0, -1);
+    updateDots();
+  }
+}
+
+function pinClear() {
+  pinBuffer = '';
+  updateDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function processPIN() {
+  const entered = pinBuffer;
+  pinBuffer = '';
+  updateDots();
+
+  if (pinMode === 'unlock') {
+    if (entered === getStoredPin()) {
+      hideLock();
+      showToast('success', '🔓', 'خوش آمدید', 'ورود موفقیت‌آمیز');
+    } else {
+      document.getElementById('pinError').textContent = '❌ پین اشتباه است. دوباره تلاش کنید.';
+    }
+  } else if (pinMode === 'setup') {
+    pinTemp = entered;
+    pinPrevMode = 'setup';
+    showLock('confirm');
+  } else if (pinMode === 'confirm') {
+    if (entered === pinTemp) {
+      localStorage.setItem('bpd_pin', pinTemp);
+      localStorage.setItem('bpd_pin_enabled', '1');
+      hideLock();
+      document.getElementById('pinToggle').checked = true;
+      document.getElementById('pinChangeSection').style.display = '';
+      const msg = pinPrevMode === 'change-new' ? 'پین با موفقیت تغییر کرد' : 'قفل پین با موفقیت فعال شد';
+      showToast('success', '🔐', 'پین تنظیم شد', msg);
+      pinPrevMode = '';
+    } else {
+      document.getElementById('pinError').textContent = '❌ پین‌ها مطابقت ندارند. دوباره امتحان کنید.';
+      const backMode = pinPrevMode === 'change-new' ? 'change-new' : 'setup';
+      pinTemp = '';
+      setTimeout(() => showLock(backMode), 1200);
+    }
+  } else if (pinMode === 'change-old') {
+    if (entered === getStoredPin()) {
+      pinTemp = '';
+      showLock('change-new');
+    } else {
+      document.getElementById('pinError').textContent = '❌ پین فعلی اشتباه است.';
+    }
+  } else if (pinMode === 'change-new') {
+    pinTemp = entered;
+    pinPrevMode = 'change-new';
+    showLock('confirm');
+  }
+}
+
+function togglePin(cb) {
+  const hasPIN = !!getStoredPin();
+  if (cb.checked) {
+    localStorage.setItem('bpd_pin_enabled', '1');
+    if (!hasPIN) {
+      showLock('setup');
+    } else {
+      document.getElementById('pinChangeSection').style.display = '';
+      showToast('success', '🔐', 'قفل فعال شد', 'قفل پین روشن شد');
+    }
+  } else {
+    localStorage.setItem('bpd_pin_enabled', '0');
+    document.getElementById('pinChangeSection').style.display = 'none';
+    showToast('warn', '🔓', 'قفل غیرفعال شد', 'قفل پین خاموش شد');
+  }
+}
+
+function startChangePin() {
+  showLock('change-old');
+}
+
+function removePin() {
+  if (!confirm('پین حذف شود؟')) return;
+  localStorage.removeItem('bpd_pin');
+  localStorage.setItem('bpd_pin_enabled', '0');
+  document.getElementById('pinToggle').checked = false;
+  document.getElementById('pinChangeSection').style.display = 'none';
+  showToast('success', '🗑', 'پین حذف شد', 'قفل پین برداشته شد');
+}
+
+// ===================== LOW BALANCE ALERTS =====================
+function fmtThreshold(input) {
+  let raw = input.value.replace(/[^0-9]/g, '');
+  if (!raw) { input.value = ''; document.getElementById('thresholdPreview').textContent = ''; return; }
+  const num = parseInt(raw, 10);
+  input.value = num.toLocaleString('en-US');
+  document.getElementById('thresholdPreview').textContent = money(num);
+}
+
+function saveAlertSettings() {
+  const enabled = document.getElementById('alertToggle').checked;
+  const raw = document.getElementById('alertThreshold').value.replace(/,/g, '');
+  const threshold = parseFloat(raw) || 0;
+  localStorage.setItem('bpd_alert_enabled', enabled ? '1' : '0');
+  localStorage.setItem('bpd_alert_threshold', threshold);
+  renderBankAlertList();
+  if (enabled) checkLowBalance();
+}
+
+function loadAlertSettings() {
+  const enabled = localStorage.getItem('bpd_alert_enabled') === '1';
+  const threshold = parseFloat(localStorage.getItem('bpd_alert_threshold')) || 0;
+  document.getElementById('alertToggle').checked = enabled;
+  if (threshold) {
+    document.getElementById('alertThreshold').value = threshold.toLocaleString('en-US');
+    document.getElementById('thresholdPreview').textContent = money(threshold);
+  }
+  renderBankAlertList();
+}
+
+function renderBankAlertList() {
+  const enabled = document.getElementById('alertToggle').checked;
+  const threshold = parseFloat(localStorage.getItem('bpd_alert_threshold')) || 0;
+  const container = document.getElementById('bankAlertList');
+  if (!enabled || !threshold || !data.banks.length) { container.innerHTML = ''; return; }
+  container.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">وضعیت حساب‌ها:</div>' +
+    data.banks.map(b => {
+      const low = b.balance < threshold;
+      const color = low ? 'var(--danger)' : 'var(--success)';
+      const icon = low ? '⚠️' : '✅';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px;border:1px solid var(--border);">
+        <span style="font-size:13px">${icon} ${b.name}</span>
+        <span style="font-size:12px;font-weight:700;color:${color}">${money(b.balance)}</span>
+      </div>`;
+    }).join('');
+}
+
+function checkLowBalance() {
+  const enabled = localStorage.getItem('bpd_alert_enabled') === '1';
+  const threshold = parseFloat(localStorage.getItem('bpd_alert_threshold')) || 0;
+  if (!enabled || !threshold) return;
+  data.banks.forEach(b => {
+    if (b.balance < threshold) {
+      showToast('danger', '⚠️', 'موجودی پایین!',
+        `${b.name}: موجودی ${money(b.balance)} کمتر از حد هشدار است`);
+    }
+  });
+}
+
+// ===================== TOAST NOTIFICATIONS =====================
+function showToast(type, icon, title, msg, duration = 4000) {
+  const container = document.getElementById('alertsContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<div class="toast-icon">${icon}</div>
+    <div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), duration);
+}
+
+// ===================== BACKUP & RESTORE =====================
+function backupData() {
+  const backup = {
+    version: 'bpd_v3',
+    exportedAt: new Date().toISOString(),
+    data: data
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const now = new Date();
+  const [jy, jm, jd] = toJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  a.download = `bank-backup-${jy}-${p(jm)}-${p(jd)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  const nowStr = toPersian(`${jy}/${p(jm)}/${p(jd)} - ${p(now.getHours())}:${p(now.getMinutes())}`);
+  localStorage.setItem('bpd_last_backup', nowStr);
+  document.getElementById('infoLastBackup').textContent = nowStr;
+  showToast('success', '💾', 'پشتیبان‌گیری موفق', 'فایل JSON دانلود شد');
+}
+
+let _pendingRestore = null;
+
+function restoreData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      let restored;
+      if (parsed.version === 'bpd_v3' && parsed.data) {
+        restored = parsed.data;
+      } else if (parsed.banks && parsed.transactions) {
+        restored = parsed;
+      } else {
+        throw new Error('فرمت فایل معتبر نیست');
+      }
+      if (!Array.isArray(restored.banks) || !Array.isArray(restored.transactions)) {
+        throw new Error('ساختار فایل اشتباه است');
+      }
+      _pendingRestore = restored;
+      // show modal
+      document.getElementById('restoreModalInfo').textContent =
+        `فایل شامل ${restored.banks.length} حساب و ${restored.transactions.length} تراکنش است.`;
+      document.getElementById('restoreModal').classList.add('open');
+    } catch (err) {
+      showToast('danger', '❌', 'خطا در بازیابی', err.message || 'فایل معتبر نیست');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function closeRestoreModal() {
+  document.getElementById('restoreModal').classList.remove('open');
+  _pendingRestore = null;
+}
+
+function doRestore(mode) {
+  const restored = _pendingRestore;
+  if (!restored) return;
+  closeRestoreModal();
+
+  if (mode === 'replace') {
+    data = restored;
+    save(); init(); loadAlertSettings(); updateInfoCard();
+    showToast('success', '📤', 'بازیابی موفق',
+      `${restored.banks.length} حساب و ${restored.transactions.length} تراکنش جایگزین شد`);
+
+  } else if (mode === 'merge') {
+    let newBanks = 0, newTx = 0;
+    // merge banks - skip if same name already exists
+    restored.banks.forEach(rb => {
+      const exists = data.banks.find(b => b.name === rb.name);
+      if (!exists) {
+        // give new id to avoid collision
+        rb.id = Date.now() + Math.floor(Math.random()*10000);
+        data.banks.push(rb);
+        newBanks++;
+      }
+    });
+    // merge transactions - skip duplicate ids
+    const existingIds = new Set(data.transactions.map(t => t.id));
+    restored.transactions.forEach(rt => {
+      if (!existingIds.has(rt.id)) {
+        // remap bankId to local bank if name matches
+        const localBank = data.banks.find(b => b.name === rt.bankName);
+        if (localBank) rt.bankId = localBank.id;
+        data.transactions.push(rt);
+        newTx++;
+      }
+    });
+    save(); init(); loadAlertSettings(); updateInfoCard();
+    showToast('success', '➕', 'ادغام موفق',
+      `${newBanks} حساب و ${newTx} تراکنش جدید اضافه شد`);
+  }
+}
+
+// ===================== INFO CARD =====================
+function updateInfoCard() {
+  document.getElementById('infoAccounts').textContent = toPersian(data.banks.length);
+  document.getElementById('infoTx').textContent = toPersian(data.transactions.length);
+  const lb = localStorage.getItem('bpd_last_backup');
+  document.getElementById('infoLastBackup').textContent = lb || '—';
+}
+
+function clearAllData() {
+  if (!confirm('همه اطلاعات پاک شود؟ این عمل برگشت‌پذیر نیست!')) return;
+  data = { banks: [], transactions: [] };
+  save();
+  init();
+  updateInfoCard();
+  showToast('warn', '🗑', 'پاک شد', 'همه اطلاعات حذف شدند');
+}
+
+// ===================== OVERRIDE INIT =====================
+function init() {
+  updateSummary(); renderBanks(); renderTransactions(); syncDropdowns();
+  checkLowBalance();
+  renderBankAlertList();
+  updateInfoCard();
+}
+
+// ===================== PHONE RECOVERY =====================
+function saveRecoveryPhone() {
+  const input = document.getElementById('recoveryPhoneSetting');
+  const phone = input.value.trim();
+  if (!phone || phone.length < 10) {
+    showToast('danger', '❌', 'خطا', 'شماره تلفن معتبر نیست');
+    return;
+  }
+  localStorage.setItem('bpd_recovery_phone', phone);
+  document.getElementById('recoveryPhoneStatus').textContent = '✅ شماره ' + phone + ' ذخیره شد';
+  showToast('success', '📱', 'ذخیره شد', 'شماره بازیابی ثبت شد');
+}
+
+function loadRecoveryPhoneSetting() {
+  const phone = localStorage.getItem('bpd_recovery_phone') || '';
+  const input = document.getElementById('recoveryPhoneSetting');
+  if (input) {
+    input.value = phone;
+    if (phone) document.getElementById('recoveryPhoneStatus').textContent = '✅ شماره ' + phone + ' ذخیره شده';
+  }
+}
+
+function showForgotPin() {
+  document.querySelector('.lock-box').style.display = 'none';
+  document.getElementById('forgotPinPanel').style.display = 'block';
+  document.getElementById('recoveryPhoneInput').value = '';
+  document.getElementById('recoveryError').textContent = '';
+}
+
+function hideForgotPin() {
+  document.querySelector('.lock-box').style.display = 'block';
+  document.getElementById('forgotPinPanel').style.display = 'none';
+}
+
+function verifyRecoveryPhone() {
+  const entered = document.getElementById('recoveryPhoneInput').value.trim();
+  const saved = localStorage.getItem('bpd_recovery_phone') || '';
+  if (!saved) {
+    document.getElementById('recoveryError').textContent = '❌ شماره بازیابی تنظیم نشده است.';
+    return;
+  }
+  if (entered === saved) {
+    // Reset pin - go to setup new pin
+    localStorage.removeItem('bpd_pin');
+    hideForgotPin();
+    showToast('success', '✅', 'تأیید شد', 'اکنون پین جدید تعیین کنید');
+    showLock('setup');
+  } else {
+    document.getElementById('recoveryError').textContent = '❌ شماره تلفن اشتباه است.';
+    document.getElementById('recoveryPhoneInput').value = '';
+  }
+}
+
+// ===================== START =====================
+init();
+loadAlertSettings();
+initPin();
+loadRecoveryPhoneSetting();
+</script>
+</body>
+</html>
